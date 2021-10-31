@@ -52,5 +52,5 @@ async function run() {
 }
 
 app.listen(port, () => {
-  console.log(`Running Server on`, port);
+  console.log(`Now Running Server on `, port);
 });
