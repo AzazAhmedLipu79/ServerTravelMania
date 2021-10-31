@@ -17,10 +17,6 @@ const client = new MongoClient(uri, {
   useUnifiedTopology: true,
 });
 
-app.get("/", (req, res) => {
-  res.send("server running");
-});
-
 async function run() {
   try {
     await client.connect();
@@ -29,14 +25,14 @@ async function run() {
     const servicesCollection = database.collection("Services");
 
     //Get Data from Api
-    app.get("/services", async (req, res) => {
+    app.get("/", async (req, res) => {
       const cursor = servicesCollection.find({});
       const services = await cursor.toArray();
       res.send(services);
     });
 
     //   Post Data of Service via  Post Api
-    app.post("/services", async (req, res) => {
+    app.post("/", async (req, res) => {
       const service = req.body;
       console.log(service);
       const result = await servicesCollection.insertOne(service);
