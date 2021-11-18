@@ -1,56 +1,64 @@
 const express = require("express");
-const { MongoClient } = require("mongodb");
+const bodyParser = require("body-parser");
 const cors = require("cors");
 require("dotenv").config();
+const MongoClient = require("mongodb").MongoClient;
+const ObjectId = require("mongodb").ObjectId;
+const { ObjectID } = require("mongodb");
 
 const app = express();
 const port = process.env.PORT || 5000;
 
-// middleware
+//Middleware
 app.use(cors());
 app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-const uri = `mongodb+srv://admin:909LL989R@cluster0.bqzbl.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.llkrc.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
 
-app.get("/", (req, res) => {
-  res.send("Hola Amigo");
-});
-
 async function run() {
+  const serviceCollection = client.db("TravelMania").collection("Services");
+
   try {
     await client.connect();
 
-    const database = client.db("TravelMania");
-    const servicesCollection = database.collection("Services");
-
-    //Get Data from Api
-    app.get("/services", async (req, res) => {
-      const cursor = servicesCollection.find({});
-      const services = await cursor.toArray();
-      res.send(services);
-    });
-
-    //   Post Data of Service via  Post Api
-    app.post("/services", async (req, res) => {
+    // add Service
+    app.post("/addService", async (req, res) => {
       const service = req.body;
-      console.log(service);
-      const result = await servicesCollection.insertOne(service);
-
-      console.log(result);
-      res.json(result);
+      const result = await serviceCollection.insertOne(service);
     });
 
-    // Add Service :")
+    // Get All Service
+
+    app.get("/allServices", async (req, res) => {
+      const result = await serviceCollection.find({}).toArray();
+      res.send(result);
+    });
+
+    //get single
+    app.get(`/singleProduct/:id`, async (req, res) => {
+      const result = await serviceCollection
+        .find({ _id: ObjectID(req.params.id) })
+        .toArray();
+      console.log(result);
+      res.send(result[0]);
+    });
   } finally {
-    //  await close
+    // await client.close();
   }
 }
 
+run().catch(console.dir);
+
+app.get("/", (req, res) => {
+  res.send("Hello  portal!");
+});
+
 app.listen(port, () => {
-  console.log(`Now Running Server on `, port);
+  console.log(`listening at ${port}`);
 });
